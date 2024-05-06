@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"regexp"
 	"strings"
 
 	"github.com/gin-gonic/gin"
@@ -13,15 +14,21 @@ func InitiateDocumentation(routes gin.RoutesInfo) {
 	for _, routeInfo := range routes {
 		fmt.Printf("Method: %s, Path: %s, Handler: %s\n", routeInfo.Method, routeInfo.Path, routeInfo.Handler)
 
+		text, err := extractMethodName(routeInfo.Handler)
+		if err != nil {
+			fmt.Println("Error extracting method name:", err)
+			continue
+		}
+		walkThroughFiles(text)
+
 	}
 
-	walkThroughFiles()
 }
 
 func searchInFile(fileName string, searchText string) error {
 	content, err := os.ReadFile(fileName)
 	if err != nil {
-		return err // handle the error, maybe continue with next file
+		return err
 	}
 
 	// Check if content contains searchText
@@ -31,9 +38,8 @@ func searchInFile(fileName string, searchText string) error {
 	return nil
 }
 
-func walkThroughFiles() {
-	root := "./"                            // directory to start searching from
-	searchText := "GetChatRoomListForAdmin" // text to search for
+func walkThroughFiles(searchText string) {
+	root := "./"
 
 	err := filepath.Walk(root, func(path string, info os.FileInfo, err error) error {
 		if err != nil {
@@ -51,4 +57,20 @@ func walkThroughFiles() {
 	if err != nil {
 		fmt.Printf("Error walking the path %q: %v\n", root, err)
 	}
+}
+
+func extractMethodName(input string) (string, error) {
+	// Compile the regular expression to extract the method name
+	re, err := regexp.Compile(`\.\(([^)]+)\)\.([^-\s]+)`)
+	if err != nil {
+		return "", err
+	}
+
+	// Find the match
+	matches := re.FindStringSubmatch(input)
+	if matches != nil && len(matches) > 2 {
+		return matches[2], nil // Return the method name
+	}
+
+	return "", fmt.Errorf("no method name found")
 }
