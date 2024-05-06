@@ -5,7 +5,6 @@ import (
 	"os"
 	"path/filepath"
 	"regexp"
-	"strings"
 
 	"github.com/gin-gonic/gin"
 )
@@ -31,8 +30,16 @@ func searchInFile(fileName string, searchText string) error {
 		return err
 	}
 
-	// Check if content contains searchText
-	if strings.Contains(string(content), fmt.Sprintf("%s(ctx *gin.Context)", searchText)) {
+	pattern := fmt.Sprintf(`%s\((\w+)\s+\*gin\.Context\)`, searchText)
+
+	r, err := regexp.Compile(pattern)
+	if err != nil {
+		fmt.Println("Error compiling regex:", err)
+		return err
+	}
+
+	matches := r.FindAllString(string(content), -1)
+	if matches != nil {
 		fmt.Println("Found in:", fileName)
 	}
 	return nil
