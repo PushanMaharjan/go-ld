@@ -1,11 +1,11 @@
 package autodocumentation
 
 import (
+	"bufio"
 	"fmt"
 	"os"
 	"path/filepath"
 	"regexp"
-	"strings"
 
 	"github.com/gin-gonic/gin"
 )
@@ -25,28 +25,37 @@ func InitiateDocumentation(routes gin.RoutesInfo) {
 
 }
 
-func searchInFile(fileName string, searchText string) error {
-	content, err := os.ReadFile(fileName)
+func searchInFile(fileName string, pattern *regexp.Regexp) error {
+	file, err := os.Open(fileName)
 	if err != nil {
 		return err
 	}
+	defer file.Close()
 
-	// Check if content contains searchText
-	if strings.Contains(string(content), searchText) {
-		fmt.Println("Found in:", fileName)
+	scanner := bufio.NewScanner(file)
+	for scanner.Scan() {
+		if pattern.MatchString(scanner.Text()) {
+			fmt.Println("Found in:", fileName)
+		}
 	}
-	return nil
+	return scanner.Err()
 }
 
 func walkThroughFiles(searchText string) {
 	root := "./"
 
-	err := filepath.Walk(root, func(path string, info os.FileInfo, err error) error {
+	pattern, err := regexp.Compile(fmt.Sprintf(`\b%s\(ctx \*gin.Context\)\b`, searchText))
+	if err != nil {
+		fmt.Println("Regex error:", err)
+		return
+	}
+
+	err = filepath.Walk(root, func(path string, info os.FileInfo, err error) error {
 		if err != nil {
 			return err // prevent panic by handling failure accessing a path
 		}
 		if !info.IsDir() {
-			err := searchInFile(path, searchText)
+			err := searchInFile(path, pattern)
 			if err != nil {
 				fmt.Println("Error reading file:", path, err)
 			}
