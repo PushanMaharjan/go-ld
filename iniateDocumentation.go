@@ -117,7 +117,7 @@ func findFunctionScope(filePath string, regexToFind *regexp.Regexp) {
 			if matches != nil {
 				inFunction = true
 				braceCount++
-				fmt.Printf("Function '%s' starts at line %d\n", lineNumber)
+				fmt.Printf("Function starts at line %d\n", lineNumber)
 			}
 		}
 	}
