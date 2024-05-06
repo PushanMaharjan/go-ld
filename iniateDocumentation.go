@@ -1,10 +1,12 @@
 package autodocumentation
 
 import (
+	"bufio"
 	"fmt"
 	"os"
 	"path/filepath"
 	"regexp"
+	"strings"
 
 	"github.com/gin-gonic/gin"
 )
@@ -41,6 +43,7 @@ func searchInFile(fileName string, searchText string) error {
 	matches := r.FindAllString(string(content), -1)
 	if matches != nil {
 		fmt.Println("Found in:", fileName)
+		findFunctionScope(fileName, searchText)
 	}
 	return nil
 }
@@ -80,4 +83,47 @@ func extractMethodName(input string) (string, error) {
 	}
 
 	return "", fmt.Errorf("no method name found")
+}
+
+func findFunctionScope(filePath, functionName string) {
+	file, err := os.Open(filePath)
+	if err != nil {
+		fmt.Println("Error opening file:", err)
+		return
+	}
+	defer file.Close()
+
+	scanner := bufio.NewScanner(file)
+	inFunction := false
+	braceCount := 0
+	functionStart := 0
+
+	for lineNumber := 1; scanner.Scan(); lineNumber++ {
+		line := scanner.Text()
+
+		if inFunction {
+			if strings.Contains(line, "{") {
+				braceCount++
+			}
+			if strings.Contains(line, "}") {
+				braceCount--
+			}
+			if braceCount == 0 {
+				fmt.Printf("Function '%s' ends at line %d\n", functionName, lineNumber)
+				return
+			}
+		} else {
+			if strings.Contains(line, "func "+functionName) {
+				inFunction = true
+				braceCount++
+				functionStart = lineNumber
+				fmt.Printf("Function '%s' starts at line %d\n", functionName, lineNumber)
+			}
+		}
+	}
+	fmt.Println("start", functionStart)
+
+	if err := scanner.Err(); err != nil {
+		fmt.Println("Error reading file:", err)
+	}
 }
