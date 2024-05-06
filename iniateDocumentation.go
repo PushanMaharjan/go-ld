@@ -7,5 +7,7 @@ import (
 )
 
 func InitiateDocumentation(routes gin.RoutesInfo) {
-	fmt.Println(routes)
+	for _, routeInfo := range routes {
+		fmt.Printf("Method: %s, Path: %s, Handler: %s\n", routeInfo.Method, routeInfo.Path, routeInfo.Handler)
+	}
 }
