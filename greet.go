@@ -2,7 +2,7 @@ package greet
 
 import "fmt"
 
-// DoSomething useful function
+// DoSomething useful
 func DoSomething() {
 	fmt.Println("here")
 	fmt.Println("here")
