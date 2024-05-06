@@ -32,7 +32,7 @@ func searchInFile(fileName string, searchText string) error {
 	}
 
 	// Check if content contains searchText
-	if strings.Contains(string(content), searchText) {
+	if strings.Contains(string(content), fmt.Sprintf("%s(ctx *gin.Context)", searchText)) {
 		fmt.Println("Found in:", fileName)
 	}
 	return nil
