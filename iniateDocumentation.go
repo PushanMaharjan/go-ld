@@ -43,7 +43,7 @@ func searchInFile(fileName string, searchText string) error {
 	matches := r.FindAllString(string(content), -1)
 	if matches != nil {
 		fmt.Println("Found in:", fileName)
-		findFunctionScope(fileName, searchText)
+		findFunctionScope(fileName, r)
 	}
 	return nil
 }
@@ -85,7 +85,7 @@ func extractMethodName(input string) (string, error) {
 	return "", fmt.Errorf("no method name found")
 }
 
-func findFunctionScope(filePath, functionName string) {
+func findFunctionScope(filePath string, regexToFind *regexp.Regexp) {
 	file, err := os.Open(filePath)
 	if err != nil {
 		fmt.Println("Error opening file:", err)
@@ -96,7 +96,6 @@ func findFunctionScope(filePath, functionName string) {
 	scanner := bufio.NewScanner(file)
 	inFunction := false
 	braceCount := 0
-	functionStart := 0
 
 	for lineNumber := 1; scanner.Scan(); lineNumber++ {
 		line := scanner.Text()
@@ -109,19 +108,19 @@ func findFunctionScope(filePath, functionName string) {
 				braceCount--
 			}
 			if braceCount == 0 {
-				fmt.Printf("Function '%s' ends at line %d\n", functionName, lineNumber)
+				fmt.Printf("Function ends at line %d\n", lineNumber)
 				return
 			}
 		} else {
-			if strings.Contains(line, "func "+functionName) {
+
+			matches := regexToFind.FindAllString(string(line), -1)
+			if matches != nil {
 				inFunction = true
 				braceCount++
-				functionStart = lineNumber
-				fmt.Printf("Function '%s' starts at line %d\n", functionName, lineNumber)
+				fmt.Printf("Function '%s' starts at line %d\n", lineNumber)
 			}
 		}
 	}
-	fmt.Println("start", functionStart)
 
 	if err := scanner.Err(); err != nil {
 		fmt.Println("Error reading file:", err)
