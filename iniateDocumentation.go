@@ -6,8 +6,6 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func InitiateDocumentation() {
-	r := gin.Default()
-
-	fmt.Println(r.Routes())
+func InitiateDocumentation(routes gin.RoutesInfo) {
+	fmt.Println(routes)
 }
