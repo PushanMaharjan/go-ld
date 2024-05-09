@@ -97,8 +97,16 @@ func findFunctionScope(filePath string, regexToFind *regexp.Regexp) {
 	inFunction := false
 	braceCount := 0
 
+	structName := ""
+
 	for lineNumber := 1; scanner.Scan(); lineNumber++ {
 		line := scanner.Text()
+		structRe := regexp.MustCompile(`ShouldBindJSON\(&(\w+)\)`)
+
+		matches := structRe.FindStringSubmatch(line)
+		if len(matches) > 1 {
+			structName = matches[1]
+		}
 
 		if inFunction {
 			if strings.Contains(line, "{") {
@@ -121,6 +129,8 @@ func findFunctionScope(filePath string, regexToFind *regexp.Regexp) {
 			}
 		}
 	}
+
+	fmt.Println("Struct Name: ", structName)
 
 	if err := scanner.Err(); err != nil {
 		fmt.Println("Error reading file:", err)
