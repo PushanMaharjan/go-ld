@@ -15,12 +15,12 @@ func InitiateDocumentation(routes gin.RoutesInfo) {
 	for _, routeInfo := range routes {
 		fmt.Printf("Method: %s, Path: %s, Handler: %s\n", routeInfo.Method, routeInfo.Path, routeInfo.Handler)
 
-		text, err := extractMethodName(routeInfo.Handler)
+		rootPath, handlerName, err := extractMethodName(routeInfo.Handler)
 		if err != nil {
 			fmt.Println("Error extracting method name:", err)
 			continue
 		}
-		walkThroughFiles(text)
+		walkThroughFiles(rootPath, handlerName)
 
 	}
 
@@ -48,8 +48,8 @@ func searchInFile(fileName string, searchText string) error {
 	return nil
 }
 
-func walkThroughFiles(searchText string) {
-	root := "./" // directory to start searching from
+func walkThroughFiles(rootPath, searchText string) {
+	root := "./" + rootPath // directory to start searching from
 
 	err := filepath.Walk(root, func(path string, info os.FileInfo, err error) error {
 		if err != nil {
@@ -69,20 +69,20 @@ func walkThroughFiles(searchText string) {
 	}
 }
 
-func extractMethodName(input string) (string, error) {
+func extractMethodName(input string) (string, string, error) {
 	// Compile the regular expression to extract the method name
-	re, err := regexp.Compile(`\.\(([^)]+)\)\.([^-\s]+)`)
+	re, err := regexp.Compile(`[^/]*(/[^.]*)(?:\(\*[^)]+\)\.)?([^.-]+)`)
 	if err != nil {
-		return "", err
+		return "", "", err
 	}
 
 	// Find the match
 	matches := re.FindStringSubmatch(input)
 	if matches != nil && len(matches) > 2 {
-		return matches[2], nil // Return the method name
+		return matches[1], matches[2], nil // Return the method name
 	}
 
-	return "", fmt.Errorf("no method name found")
+	return "", "", fmt.Errorf("no method name found")
 }
 
 func findFunctionScope(filePath string, regexToFind *regexp.Regexp) {
