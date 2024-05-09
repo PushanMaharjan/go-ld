@@ -49,7 +49,7 @@ func searchInFile(fileName string, searchText string) error {
 }
 
 func walkThroughFiles(rootPath, searchText string) {
-	root := "./" + rootPath // directory to start searching from
+	root := rootPath // directory to start searching from
 
 	err := filepath.Walk(root, func(path string, info os.FileInfo, err error) error {
 		if err != nil {
