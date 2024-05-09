@@ -70,19 +70,20 @@ func walkThroughFiles(rootPath, searchText string) {
 }
 
 func extractMethodName(input string) (string, string, error) {
-	// Compile the regular expression to extract the method name
-	re, err := regexp.Compile(`[^/]*(/[^.]*)(?:\(\*[^)]+\)\.)?([^.-]+)`)
+	// Compile the regular expression to extract the method name and path
+	re, err := regexp.Compile(`[^/]*?/(.*?)/?(\(\*[^)]+\))?\.?([^.-]+)`)
 	if err != nil {
 		return "", "", err
 	}
 
 	// Find the match
 	matches := re.FindStringSubmatch(input)
-	if matches != nil && len(matches) > 2 {
-		return matches[1], matches[2], nil // Return the method name
+	if len(matches) > 3 {
+		// Return the path and the method name
+		return matches[1], matches[3], nil
 	}
 
-	return "", "", fmt.Errorf("no method name found")
+	return "", "", fmt.Errorf("no valid matches found")
 }
 
 func findFunctionScope(filePath string, regexToFind *regexp.Regexp) {
