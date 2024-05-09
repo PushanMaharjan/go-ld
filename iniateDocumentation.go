@@ -130,7 +130,7 @@ func findFunctionScope(filePath string, regexToFind *regexp.Regexp) {
 		}
 	}
 
-	fmt.Println("Struct Name: ", structName)
+	fmt.Println("Struct Name:: ", structName)
 
 	if err := scanner.Err(); err != nil {
 		fmt.Println("Error reading file:", err)
